@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "CuidadoCerca",
+    "slug": "cuidadocerca-mobile",
+    "scheme": "cuidadocerca",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.cuidadocerca.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF8F1"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CuidadoCerca usa la cámara solo cuando eliges escanear un documento."
+        }
+      ],
+      "expo-ocr-kit",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "CuidadoCerca usa el micrófono solo cuando pulsas Dictar.",
+          "speechRecognitionPermission": "CuidadoCerca convierte tu voz en texto para que puedas revisarlo antes de guardarlo.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ],
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "499069c2-34e8-4e0b-8410-3c4090b3e8cd"
+      }
+    },
+    "owner": "acastroaq"
+  }
+}
