@@ -57,11 +57,27 @@ export async function migrateDatabase(db: SQLiteDatabase) {
       FOREIGN KEY(medication_id) REFERENCES medications(id) ON DELETE CASCADE
     );
   `);
+  const documentColumns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(local_documents)');
+  if (!documentColumns.some(column => column.name === 'image_uri')) {
+    await db.execAsync('ALTER TABLE local_documents ADD COLUMN image_uri TEXT');
+  }
+  const medicationColumns = await db.getAllAsync<{ name: string }>("PRAGMA table_info(medications)");
+  if (!medicationColumns.some(column => column.name === 'paused')) {
+    await db.execAsync("ALTER TABLE medications ADD COLUMN paused INTEGER NOT NULL DEFAULT 0");
+  }
+  const columns = await db.getAllAsync<{ name: string }>("PRAGMA table_info(care_requests)");
+  if (!columns.some(column => column.name === 'scheduled_at')) {
+    await db.execAsync("ALTER TABLE care_requests ADD COLUMN scheduled_at TEXT");
+  }
+  if (!columns.some(column => column.name === 'responder')) {
+    await db.execAsync("ALTER TABLE care_requests ADD COLUMN responder TEXT");
+  }
 }
 
 export type ActivityRow = { id: number; title: string; detail: string; scheduled_at: string | null; state: 'pending' | 'done'; category: string };
-export type MedicationRow = { id: number; name: string; dose: string; frequency: string; times: string; starts_on: string | null; ends_on: string | null; last_status?: string | null; last_time?: string | null };
+export type MedicationRow = { id: number; name: string; dose: string; frequency: string; times: string; starts_on: string | null; ends_on: string | null; paused: number; last_status?: string | null; last_time?: string | null };
 export type AppointmentRow = { id: number; specialty: string; clinician: string; clinic: string; scheduled_at: string; reason: string; state: string };
 export type EmergencyContactRow = { id: number; name: string; phone: string; relationship: string };
-export type DocumentRow = { id: number; title: string; kind: string; recognized_text: string; source: string; created_at: string };
+export type DocumentRow = { id: number; title: string; kind: string; recognized_text: string; source: string; created_at: string; image_uri: string | null };
 export type CareRequestRow = { id: number; kind: string; message: string; state: 'draft' | 'sent' | 'received' | 'accepted' | 'completed'; created_at: string };
+

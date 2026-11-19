@@ -15,10 +15,9 @@ export function AccessibilityProvider({ children }: PropsWithChildren) {
     if (active) { setPrefs({ textScale: [1,1.15,1.3].includes(Number(map['access:textScale'])) ? Number(map['access:textScale']) : 1, highContrast: map['access:highContrast'] === 'true', simpleMode: map['access:simpleMode'] === 'true', readAloud: map['access:readAloud'] === 'true' }); setReady(true); }
   })().catch(() => { if (active) setReady(true); }); return () => { active = false; }; }, [db]);
   const update = useCallback(async (patch: Partial<AccessibilityPreferences>) => {
-    const next = { ...prefs, ...patch };
     for (const [key,value] of Object.entries(patch)) await db.runAsync('INSERT OR REPLACE INTO preferences (key,value) VALUES (?,?)', `access:${key}`, String(value));
-    setPrefs(next);
-  }, [db,prefs]);
+    setPrefs(current => ({ ...current, ...patch }));
+  }, [db]);
   const value = useMemo(() => ({ ...prefs, ready, update }), [prefs,ready,update]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

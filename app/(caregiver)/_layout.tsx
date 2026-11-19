@@ -1,12 +1,19 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAccessibility } from '../../src/accessibility/AccessibilityContext';
+import { CaregiverTabButton } from '../../src/ui/CaregiverTabButton';
 import { colors } from '../../src/ui/theme';
-
-const entries = [['index', 'Inicio', '⌂'], ['activities', 'Actividades', '◷'], ['requests', 'Solicitudes', '♡'], ['documents', 'Documentos', '▣'], ['profile', 'Perfil', '◉']];
+const entries = [
+  ['index', 'Inicio', 'home'], ['activities', 'Actividades', 'calendarPlain'], ['requests', 'Solicitudes', 'heart'], ['documents', 'Documentos', 'file'], ['profile', 'Perfil', 'person'],
+] as const;
 export default function CaregiverTabs() {
-  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarLabelStyle: { fontSize: 12, fontWeight: '600', fontFamily: 'Poppins_600SemiBold' }, tabBarIconStyle: { marginTop: 4 }, tabBarStyle: { minHeight: 68, paddingTop: 5, paddingBottom: 4, backgroundColor: colors.white, borderTopColor: colors.border }, sceneStyle: { backgroundColor: colors.canvas } }}>
-    {entries.map(([name, title, icon]) => <Tabs.Screen key={name} name={name} options={{ title, tabBarAccessibilityLabel: title, tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 22 }}>{icon}</Text> }} />)}
-    <Tabs.Screen name="summary" options={{ href: null }} />
-    <Tabs.Screen name="medicines" options={{ href: null }} />
+  const insets = useSafeAreaInsets();
+  const { textScale } = useAccessibility();
+  const bottom = Math.max(8, insets.bottom);
+  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: '#167B70', tabBarInactiveTintColor: '#52636B', tabBarActiveBackgroundColor: 'transparent',
+    tabBarItemStyle: { flex: 1, minHeight: 64, marginHorizontal: 0 },
+    tabBarStyle: { height: Math.ceil(72 + Math.max(0, textScale - 1) * 44) + bottom, paddingTop: 7, paddingBottom: bottom, paddingHorizontal: 3, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: '#FFFFFF', borderTopWidth: 0.5, borderTopColor: '#DCE7E4', shadowColor: '#253238', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 5 }, sceneStyle: { backgroundColor: colors.canvas } }}>
+    {entries.map(([name, title, icon]) => <Tabs.Screen key={name} name={name} options={{ title, tabBarAccessibilityLabel: title, tabBarButton: props => <CaregiverTabButton {...props} label={title} icon={icon} /> }} />)}
+    <Tabs.Screen name="summary" options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} /><Tabs.Screen name="medicines" options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
   </Tabs>;
 }

@@ -13,7 +13,7 @@ export async function requestReminderPermission() {
   return (await Notifications.requestPermissionsAsync()).granted;
 }
 
-export async function scheduleMedicationReminders(db: SQLiteDatabase, medicationId: number, medicationName: string, times: string) {
+export async function scheduleMedicationReminders(db: SQLiteDatabase, medicationId: number, _medicationName: string, times: string) {
   const existing = await db.getAllAsync<{ notification_id: string }>('SELECT notification_id FROM medication_reminders WHERE medication_id=?', medicationId);
   await Promise.all(existing.map(item => Notifications.cancelScheduledNotificationAsync(item.notification_id).catch(() => undefined)));
   await db.runAsync('DELETE FROM medication_reminders WHERE medication_id=?', medicationId);
@@ -23,7 +23,7 @@ export async function scheduleMedicationReminders(db: SQLiteDatabase, medication
     const [hour, minute] = time.split(':').map(Number);
     if (hour > 23 || minute > 59) continue;
     const notificationId = await Notifications.scheduleNotificationAsync({
-      content: { title: 'Recordatorio de horario registrado', body: `Revisa la indicación guardada para ${medicationName}. No es una verificación de toma.`, data: { medicationId } },
+      content: { title: 'Recordatorio de horario registrado', body: 'Abre CuidadoCerca para consultar tu recordatorio.', data: { medicationId } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute, channelId: 'care-reminders', delivery: 'bestEffort' },
     });
     await db.runAsync('INSERT INTO medication_reminders (medication_id,time,notification_id) VALUES (?,?,?)', medicationId, time, notificationId);
@@ -31,7 +31,7 @@ export async function scheduleMedicationReminders(db: SQLiteDatabase, medication
   return true;
 }
 
-export async function scheduleActivityReminder(db: SQLiteDatabase, activityId: number, title: string, scheduledAt: string) {
+export async function scheduleActivityReminder(db: SQLiteDatabase, activityId: number, _title: string, scheduledAt: string) {
   const existing = await db.getAllAsync<{ notification_id: string }>('SELECT notification_id FROM activity_reminders WHERE activity_id=?', activityId);
   await Promise.all(existing.map(item => Notifications.cancelScheduledNotificationAsync(item.notification_id).catch(() => undefined)));
   await db.runAsync('DELETE FROM activity_reminders WHERE activity_id=?', activityId);
@@ -39,7 +39,7 @@ export async function scheduleActivityReminder(db: SQLiteDatabase, activityId: n
   if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) return false;
   if (!(await requestReminderPermission())) return false;
   const notificationId = await Notifications.scheduleNotificationAsync({
-    content: { title: 'Actividad de CuidadoCerca', body: title, data: { activityId } },
+    content: { title: 'Actividad de CuidadoCerca', body: 'Abre CuidadoCerca para consultar tu recordatorio.', data: { activityId } },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
   });
   await db.runAsync('INSERT INTO activity_reminders (activity_id,notification_id) VALUES (?,?)', activityId, notificationId);
@@ -52,11 +52,20 @@ export async function cancelActivityReminder(db: SQLiteDatabase, activityId: num
   await db.runAsync('DELETE FROM activity_reminders WHERE activity_id=?', activityId);
 }
 
-export async function scheduleSnoozeNotification(title: string, seconds = 15 * 60) {
+export async function scheduleSnoozeNotification(_title: string, seconds = 15 * 60) {
   if (!(await requestReminderPermission())) return false;
   await Notifications.scheduleNotificationAsync({
-    content: { title: 'Recordatorio de CuidadoCerca', body: title },
+    content: { title: 'Recordatorio de CuidadoCerca', body: 'Abre CuidadoCerca para consultar tu recordatorio.' },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds, channelId: 'care-reminders' },
   });
   return true;
+}
+
+
+export async function cancelMedicationReminders(db: SQLiteDatabase, medicationId: number) {
+  const reminders = await db.getAllAsync<{ notification_id: string }>('SELECT notification_id FROM medication_reminders WHERE medication_id=?', medicationId);
+  for (const reminder of reminders) {
+    await Notifications.cancelScheduledNotificationAsync(reminder.notification_id);
+    await db.runAsync('DELETE FROM medication_reminders WHERE medication_id=? AND notification_id=?', medicationId, reminder.notification_id);
+  }
 }

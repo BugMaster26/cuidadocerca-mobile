@@ -1,2 +1,2 @@
-import { FeaturePage } from '../../src/ui/NativeScreens';
-export default function Summary() { return <FeaturePage title="Resumen de cuidado" intro="La información compartida dependerá de permisos y sincronización segura." icon="▤" />; }
+import { CaregiverRecords } from '../../src/screens/CaregiverRecords';
+export default function CaregiverPage() { return <CaregiverRecords page="summary" />; }

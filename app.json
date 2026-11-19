@@ -14,7 +14,12 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CALL_PHONE"
+      ],
+      "versionCode": 4,
+      "blockedPermissions": [
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "plugins": [
@@ -32,10 +37,19 @@
         {
           "microphonePermission": "CuidadoCerca usa el micrófono solo cuando pulsas Dictar.",
           "speechRecognitionPermission": "CuidadoCerca convierte tu voz en texto para que puedas revisarlo antes de guardarlo.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "CuidadoCerca permite elegir un contacto de confianza para el SOS. Solo guardamos el nombre y teléfono que confirmes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
